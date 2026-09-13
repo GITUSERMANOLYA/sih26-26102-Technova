@@ -374,13 +374,15 @@ function normalizeWork(
         'San_Work_Status'
       ),
 
-    comp_completion_date:
-      getValue(
-        row,
-        'comp_completion_date',
-        'Comp Completion Date',
-        'Comp_Completion_Date'
-      ),
+   comp_completion_date:
+  getValue(
+    row,
+    'comp_completion_date',
+    'Comp Completion Date',
+    'Comp_Completion Date',
+    'Comp_Completion_Date',
+    'Completion Date'
+  ),
 
     comp_amount_disbursed:
       toNumber(
@@ -667,12 +669,47 @@ export default function WorkDetail({
         ]
     );
 
-  const timeline: {
-    label: string;
-    date: string | null;
-    amount: number | null;
-    done: boolean;
-  }[] = [
+  const lifecycleStage = String(
+  work.lifecycle_stage || ''
+).trim().toLowerCase();
+
+const isRecommended =
+  lifecycleStage === 'recommended' ||
+  lifecycleStage === 'sanctioned' ||
+  lifecycleStage === 'completed';
+
+const isSanctioned =
+  lifecycleStage === 'sanctioned' ||
+  lifecycleStage === 'completed';
+
+const isCompleted =
+  lifecycleStage === 'completed';
+
+const timeline: {
+  label: string;
+  date: string | null;
+  amount: number | null;
+  done: boolean;
+}[] = [
+  {
+    label: 'Recommended',
+    date: work.rec_recommended_date,
+    amount: work.rec_recommended_amount,
+    done: isRecommended,
+  },
+  {
+    label: 'Sanctioned',
+    date: work.san_sanction_date,
+    amount: work.san_sanction_amount,
+    done: isSanctioned,
+  },
+  {
+    label: 'Completed',
+    date: work.comp_completion_date,
+    amount: work.comp_amount_disbursed,
+    done: isCompleted,
+  },
+];[] = [
     {
       label: 'Recommended',
       date:

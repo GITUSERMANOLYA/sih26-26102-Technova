@@ -69,25 +69,46 @@ function getValue(row: any, keys: string[]): any {
  * as fully Completed just because the word "Completed" appears.
  */
 function getLifecycleStage(row: any): string {
+  // 1. Trust the lifecycle stage already calculated by the backend
+  const explicitLifecycle = getValue(row, [
+    'lifecycle_stage',
+    'Lifecycle Stage',
+    'Lifecycle_Stage',
+  ]);
+
+  if (
+    explicitLifecycle !== null &&
+    explicitLifecycle !== undefined &&
+    String(explicitLifecycle).trim() !== ''
+  ) {
+    return String(explicitLifecycle).trim();
+  }
+
+  // 2. Fallback: determine stage from actual CSV fields
   const statusGroup = String(
     getValue(row, [
       'status_group',
       'Status Group',
       'Status_Group',
-    ]) ?? ''
-  ).trim().toLowerCase();
+    ]) || ''
+  )
+    .trim()
+    .toLowerCase();
 
   const workStatus = String(
     getValue(row, [
       'san_work_status',
       'San Work Status',
       'San_Work_Status',
-    ]) ?? ''
-  ).trim().toLowerCase();
+    ]) || ''
+  )
+    .trim()
+    .toLowerCase();
 
   const completionDate = getValue(row, [
     'comp_completion_date',
     'Comp Completion Date',
+    'Comp_Completion Date',
     'Comp_Completion_Date',
     'completion_date',
     'Completion Date',
@@ -96,103 +117,48 @@ function getLifecycleStage(row: any): string {
   const sanctionDate = getValue(row, [
     'san_sanction_date',
     'Sanction Date',
+    'San Sanction Date',
+    'San_Sanction Date',
     'San_Sanction_Date',
   ]);
 
-  const explicitLifecycle = String(
-    getValue(row, [
-      'lifecycle_stage',
-      'Lifecycle Stage',
-      'Lifecycle_Stage',
-    ]) ?? ''
-  ).trim();
-
-  /*
-   * COMPLETED
-   *
-   * A completion date is the strongest evidence.
-   */
-  if (completionDate) {
-    return 'Completed';
-  }
-
-  /*
-   * Check exact/strong completed statuses.
-   *
-   * Do NOT simply use includes("complete"), because
-   * "Work partially Completed" is not the same as
-   * "Work Completed".
-   */
+  // 3. Completed
   if (
-    workStatus === 'work completed' ||
-    workStatus === 'completed' ||
-    workStatus === 'complete'
+    completionDate !== null &&
+    completionDate !== undefined &&
+    String(completionDate).trim() !== ''
   ) {
     return 'Completed';
   }
 
   if (
     statusGroup === 'completed' ||
-    statusGroup === 'complete'
+    workStatus === 'completed'
   ) {
     return 'Completed';
   }
 
-  /*
-   * SANCTIONED
-   */
+  // 4. Sanctioned / In Progress
   if (
-    workStatus.includes('sanction') ||
-    workStatus.includes('ongoing') ||
-    workStatus === 'in progress' ||
-    workStatus === 'progress'
+    sanctionDate !== null &&
+    sanctionDate !== undefined &&
+    String(sanctionDate).trim() !== ''
   ) {
     return 'Sanctioned';
   }
 
   if (
-    statusGroup.includes('sanction') ||
+    statusGroup.includes('progress') ||
     statusGroup.includes('ongoing') ||
-    statusGroup === 'in progress' ||
-    statusGroup === 'progress'
+    statusGroup.includes('sanction') ||
+    workStatus.includes('progress') ||
+    workStatus.includes('ongoing') ||
+    workStatus.includes('sanction')
   ) {
     return 'Sanctioned';
   }
 
-  if (sanctionDate) {
-    return 'Sanctioned';
-  }
-
-  /*
-   * Use explicit lifecycle only after checking
-   * the actual completion/sanction evidence.
-   */
-  if (explicitLifecycle) {
-    const normalized = explicitLifecycle.toLowerCase();
-
-    if (
-      normalized === 'completed' ||
-      normalized === 'complete'
-    ) {
-      return 'Completed';
-    }
-
-    if (
-      normalized === 'sanctioned' ||
-      normalized === 'sanction' ||
-      normalized === 'in progress'
-    ) {
-      return 'Sanctioned';
-    }
-
-    if (normalized === 'recommended') {
-      return 'Recommended';
-    }
-  }
-
-  /*
-   * Final fallback.
-   */
+  // 5. Otherwise Recommended
   return 'Recommended';
 }
 

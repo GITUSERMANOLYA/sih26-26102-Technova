@@ -20,7 +20,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/lib/format';
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = 'https://technova-backend-0gpp.onrender.com';
 
 interface ApiWork {
   [key: string]: any;

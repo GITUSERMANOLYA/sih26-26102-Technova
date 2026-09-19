@@ -11,7 +11,7 @@ import {
   ArrowRight, Activity,
 } from 'lucide-react';
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = 'https://technova-backend-0gpp.onrender.com';
 
 type Page = 'dashboard' | 'works' | 'alerts' | 'analytics' | 'methodology';
 

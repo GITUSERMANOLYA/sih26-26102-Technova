@@ -1,6 +1,6 @@
 import type { Work } from './supabase';
 
-const API_BASE = 'https://sih26-26102-technova.onrender.com';
+const API_BASE = 'https://technova-backend-0gpp.onrender.com/';
 
 
 // ============================================================
